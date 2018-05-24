@@ -80,38 +80,106 @@ function! Picker()
     endif
     let r=findfile(g:love_path)
     if r != ''
-        let loves=readfile(g:love_path)
-        if len(loves) > 0
-            let g:colorscheme_file=loves[0]
-            call ApplyCS()
-            return
-        endif
+        call PickerLove()
+        return
     endif
     while 1
         let rand=GetRAND()
         let rand=rand%len(arr)
         let g:colorscheme_file_path=arr[rand]
-        if index(hates, g:colorscheme_file_path) == -1
+        let g:colorscheme_file=split(g:colorscheme_file_path, g:slash)[-1][:-5]
+        if index(hates, g:colorscheme_file) == -1
             break
         endif
     endwhile
     " colorscheme is /path/to/colorscheme_file.vim
     " convert to colorscheme_file
-    let g:colorscheme_file=split(g:colorscheme_file_path, g:slash)[-1][:-5]
+    call ApplyCS()
+endfunction
+
+function! PickerLove()
+    " the first line is a comment line
+    let hates=readfile(g:hate_path)
+    let loves=readfile(g:love_path)[1:]
+    if len(loves) > 1
+        while 1
+            let rand=GetRAND()
+            let rand=rand%len(loves)
+            let g:colorscheme_file=loves[rand]
+            if index(hates, g:colorscheme_file) == -1
+                break
+            endif
+        endwhile
+        call ApplyCS()
+    else
+        let g:colorscheme_file=loves[0]
+        call ApplyCS()
+    endif
+endfunction
+
+
+function! RePicker()
+    " Fetch the runtime path and search for 
+    " all the color files
+    let colorscheme_dirs = []
+    for i in split(&runtimepath, ',')
+        if !empty(glob(i.'/colors'))
+            call add(colorscheme_dirs, i.'/colors')
+        endif
+    endfor
+
+    let g:all_colorschemes=[]
+    for colorsheme_dir in colorscheme_dirs
+        let colorschemes=glob(colorsheme_dir.'/*.vim')
+        let g:all_colorschemes+=split(colorschemes, '\n')
+    endfor
+
+    let arr=[]
+    for colorscheme_dir in colorscheme_dirs
+        let colorschemes=glob(colorscheme_dir.'/*.vim')
+        let arr+=split(colorschemes, '\n')
+    endfor
+    let g:total_colorschemes = len(arr)
+    let hates=[]
+    let r=findfile(g:hate_path)
+    if r != ''
+        let hates=readfile(g:hate_path)
+    endif
+
+    while 1
+        let rand=GetRAND()
+        let rand=rand%len(arr)
+        let g:colorscheme_file_path=arr[rand]
+        let g:colorscheme_file=split(g:colorscheme_file_path, g:slash)[-1][:-5]
+        if index(hates, g:colorscheme_file) == -1
+            break
+        endif
+    endwhile
+    " colorscheme is /path/to/colorscheme_file.vim
+    " convert to colorscheme_file
     call ApplyCS()
 endfunction
 
 function! ApplyCS()
     let cmd='colorscheme '.g:colorscheme_file
     execute cmd
+    " to allow transparent background
+    hi Normal ctermbg=none
+    highlight NonText ctermbg=none
 endfunction
 
 function! LoveCS()
-    execute writefile([g:colorscheme_file], g:love_path)
+    let loves=readfile(g:love_path)
+    if index(loves, [g:colorscheme_file]) == -1
+        call add(loves, g:colorscheme_file)
+        execute writefile(loves, g:love_path)
+    endif
 endfunction
 
 function! HateCS()
-    call delete(g:love_path)
+    "--------------------------------------------------
+    " call delete(g:love_path)
+    "--------------------------------------------------
     let r=findfile(g:hate_path)
     if r != ''
         let hates=readfile(g:hate_path)
@@ -120,11 +188,13 @@ function! HateCS()
     endif
     if len(hates) + 1 == g:total_colorschemes
         redrawstatus
-  echo "She is the last one you got, Can't hate it anymore, or :Back first."
+        echo "She is the last one you got, Can't hate it anymore, or :Back first."
     else
-        call add(hates, g:colorscheme_file_path)
-        call writefile(hates, g:hate_path)
-        call PickAndShow()
+        if index(hates, [g:colorscheme_file]) == -1
+            call add(hates, g:colorscheme_file)
+            call writefile(hates, g:hate_path)
+            call PickAndShow()
+        endif
     endif
 endfunction
 
@@ -140,13 +210,14 @@ function! ShowCS()
 endfunction
 
 function! PickAndShow()
-  call Picker()
+  call RePicker()
   call ShowCS()
 endfunction
 
 call Picker()
 autocmd VimEnter * echo 'using colorscheme: '.g:colorscheme_file
 command! Love call LoveCS()
+command! CSxs call PickerLove()
 command! Hate call HateCS()
 command! CS call ShowCS()
 command! Back call BackCS()
