@@ -47,12 +47,15 @@ endif
 if !exists('g:colorscheme_user_path')
   let g:colorscheme_user_path = ''
 end
+if !exists('g:airline_theme_path')
+  let g:airline_theme_path = ''
+end
 let g:colorscheme_file_path=''
 let g:colorscheme_file=''
 let g:total_colorschemes = 0
 
 function! Picker()
-    " Fetch the runtime path and search for 
+    " Fetch the runtime path and search for
     " all the color files
     let colorscheme_dirs = []
     for i in split(&runtimepath, ',')
@@ -119,7 +122,7 @@ endfunction
 
 
 function! RePicker()
-    " Fetch the runtime path and search for 
+    " Fetch the runtime path and search for
     " all the color files
     let colorscheme_dirs = []
     for i in split(&runtimepath, ',')
@@ -166,6 +169,7 @@ function! ApplyCS()
     " to allow transparent background
     hi Normal ctermbg=none
     highlight NonText ctermbg=none
+    highlight Comment cterm=italic
 endfunction
 
 function! LoveCS()
