@@ -1,3 +1,16 @@
+## Add some functions: ##
+
+
+1, Multiple "Love"
+
+2,  CSnext can change even you have "Love"
+
+3, CSxs random switch between "Love" :)
+
+4, allow transparent background
+
+5,  colorscheme brogrammer is great
+
 This fork is changed for fitting [vundle][1]
 
 add following line in you [vundle][1] config
