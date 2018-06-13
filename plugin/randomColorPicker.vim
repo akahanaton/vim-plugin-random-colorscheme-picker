@@ -169,7 +169,12 @@ function! ApplyCS()
     " to allow transparent background
     hi Normal ctermbg=none
     highlight NonText ctermbg=none
+    let &t_ZH="\e[3m"
+    let &t_ZR="\e[23m"
     highlight Comment cterm=italic
+    "--------------------------------------------------
+    " highlight Comment cterm=italic
+    "--------------------------------------------------
 endfunction
 
 function! LoveCS()
